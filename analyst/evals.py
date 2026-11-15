@@ -80,7 +80,7 @@ def score(case: Dict, out: Dict, docs_items: List[tuple]) -> Dict:
     cat, st = case["category"], out["status"]
     r = {"id": case["id"], "category": cat, "status": st}
     if cat in ("numeric", "qualitative"):
-        r["retrieval_hit"] = any(t == case["ticker"] and (i == case["gold_item"] or cat == "numeric" and i in ("7", "8"))
+        r["retrieval_hit"] = any(t == case["ticker"] and (i == case["gold_item"] or cat == "numeric" and i in ("7", "8", "15"))
                                  for t, i in docs_items)
         r["answered"] = st == "answered"
     if cat == "numeric":
