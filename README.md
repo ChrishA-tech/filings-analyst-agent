@@ -42,21 +42,21 @@ Questions are generated from the five filings (Apple, Microsoft, NVIDIA, Amazon,
 ## Results
 
 <!-- RESULTS:START -->
-**Backend: ollama** (20 cases, run 2026-11-15)
+**Backend: ollama** (80 cases, run 2026-11-15)
 
 | Metric | verifier | no_verifier |
 |---|---|---|
 | Model | qwen2.5:7b | qwen2.5:7b |
-| Overall accuracy | 90.0% | 90.0% |
-| Numeric accuracy | 60.0% | 60.0% |
-| Qualitative accuracy | 100.0% | 100.0% |
+| Overall accuracy | 91.2% | 95.0% |
+| Numeric accuracy | 60.0% | 73.3% |
+| Qualitative accuracy | 96.7% | 100.0% |
 | Unanswerable accuracy | 100.0% | 100.0% |
 | Adversarial accuracy | 100.0% | 100.0% |
 | Retrieval hit@6 (numeric+qualitative) | 100.0% | 100.0% |
-| Claims the verifier judged supported | 88.9% | n/a |
-| False abstain rate (answerable questions) | 20.0% | 10.0% |
-| Latency p50 / p95 (s) | 8.1 / 17.5 | 1.8 / 6.7 |
-| LLM calls | 28 | 15 |
+| Claims the verifier judged supported | 91.5% | n/a |
+| False abstain rate (answerable questions) | 13.3% | 4.4% |
+| Latency p50 / p95 (s) | 10.2 / 19.0 | 7.6 / 11.1 |
+| LLM calls | 124 | 65 |
 
 _Verifier-vs-human calibration not run yet (see `analyst/judge_labels.py`)._
 
