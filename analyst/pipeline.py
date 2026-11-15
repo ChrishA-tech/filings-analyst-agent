@@ -20,7 +20,8 @@ def build_corpus(sec_dir: Path = None, out: Path = None) -> Path:
             raw = (sec_dir / f"{t}_10k.html").read_text(errors="ignore")
             docs = documents(t, m["name"], m["report_date"][:4], raw)
             items = sorted({d["meta"]["item"] for d in docs})
-            print(f"{t}: {len(docs)} chunks, items {items}")
+            size = {i: sum(len(d["text"]) for d in docs if d["meta"]["item"] == i) // 1000 for i in ("1", "1A", "7", "8")}
+            print(f"{t}: {len(docs)} chunks, items {items}, thousand chars in Items 1/1A/7/8: {size}")
             problems += [f"{t} missing Item {i}" for i in ("1", "1A", "7", "8") if i not in items]
             for d in docs:
                 f.write(json.dumps(d) + "\n")
@@ -38,7 +39,9 @@ def make(backend: str = "ollama", verify: bool = True, chunks: Path = None,
     else:
         llm = OpenAICompat(backend, chat_model=chat_model)
         emb = APIEmbeddings(llm)
-        tag = f"{backend}-{llm.embed_model.replace(':', '_').replace('/', '_')}-{len(rows)}"   # new corpus -> new index
+        import hashlib
+        digest = hashlib.md5(chunks.read_bytes()).hexdigest()[:10]               # new corpus -> new index
+        tag = f"{backend}-{llm.embed_model.replace(':', '_').replace('/', '_')}-{digest}"
         pdir = (C.INDEX_DIR / tag) if persist else None
     index = HybridIndex(to_documents(rows), emb, persist_dir=pdir)
     return index, llm, build(index, llm, verify=verify)

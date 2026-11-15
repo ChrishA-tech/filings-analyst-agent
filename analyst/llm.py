@@ -52,10 +52,24 @@ class OpenAICompat:
         raise RuntimeError("unreachable")
 
     def chat(self, messages: List[Dict], temperature: float = 0.0, max_tokens: int = 700) -> str:
+        if self.backend == "ollama":        # native API: the OpenAI-style endpoint ignores num_ctx and may truncate
+            r = self._post_native("/api/chat", {"model": self.chat_model, "messages": messages, "stream": False,
+                                                "options": {"temperature": temperature, "num_predict": max_tokens,
+                                                            "num_ctx": 8192, "seed": 7}})
+            self.usage.add({"prompt_tokens": r.get("prompt_eval_count", 0), "completion_tokens": r.get("eval_count", 0)})
+            return r["message"]["content"] or ""
         r = self._post("/chat/completions", {"model": self.chat_model, "messages": messages,
                                              "temperature": temperature, "max_tokens": max_tokens})
         self.usage.add(r.get("usage"))
         return r["choices"][0]["message"]["content"] or ""
+
+    def _post_native(self, path: str, body: Dict) -> Dict:
+        base = self.base[:-3] if self.base.endswith("/v1") else self.base
+        saved, self.base = self.base, base
+        try:
+            return self._post(path, body)
+        finally:
+            self.base = saved
 
     def embed(self, texts: List[str]) -> List[List[float]]:
         out = []

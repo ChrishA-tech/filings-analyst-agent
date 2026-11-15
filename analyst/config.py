@@ -15,7 +15,7 @@ COMPANIES = {"AAPL": ("Apple", 320193), "MSFT": ("Microsoft", 789019), "NVDA": (
 SEC_USER_AGENT = os.environ.get("SEC_USER_AGENT", "Chrish Pep Felix A research project chrishpepfelixa@gmail.com")
 
 CHUNK_CHARS, CHUNK_OVERLAP = 1500, 200
-TOP_K = 6
+TOP_K = 8
 RRF_K = 60
 
 # Backends: all speak the OpenAI-compatible chat/embeddings API.

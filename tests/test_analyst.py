@@ -139,3 +139,33 @@ def test_model_error_fails_one_question(corpus, tmp_path):
             raise TimeoutError("timed out")
     rows = run(Boom(), idx, build_cases(sec)[:3])
     assert len(rows) == 3 and all(r["status"] == "failed" and not r["correct"] for r in rows)
+
+
+def test_repeated_headings_keep_all_text():
+    t = ("Item 7. MD&A\n\nPart one of the discussion.\n\nItem 8. Financial Statements\n\nIncome statement here.\n\n"
+         "Item 7. MD&A (continued)\n\nPart two of the discussion.\n\nItem 8\n\nBalance sheet here.")
+    s = sections(t)
+    assert "Part one" in s["7"] and "Part two" in s["7"] and "Balance sheet" in s["8"] and "Income statement" in s["8"]
+
+
+def test_table_rows_are_cleaned_and_chunks_labelled():
+    t = html_to_text("<table><tr><td>Net income</td><td></td><td>$</td><td>132,175</td><td></td><td>$</td>"
+                     "<td>(1,234</td><td>)</td></tr></table>")
+    assert "Net income | $132,175 | $(1,234)" in t
+    from analyst.text import documents
+    d = documents("AAA", "Acme", "2024", "<p>Item 8. Financial Statements</p><p>Total revenue was $5 million.</p>")
+    assert d[0]["text"].startswith("[Acme 10-K fiscal 2024, Item 8]")
+
+
+def test_ollama_uses_native_chat_with_context(monkeypatch):
+    from analyst.llm import OpenAICompat
+    seen = {}
+    c = OpenAICompat("ollama")
+
+    def fake(path, body, retries=3):
+        seen.update(url=c.base + path, body=body)
+        return {"message": {"content": "ok"}, "prompt_eval_count": 10, "eval_count": 2}
+    monkeypatch.setattr(c, "_post", fake)
+    assert c.chat([{"role": "user", "content": "hi"}]) == "ok"
+    assert seen["url"].endswith(":11434/api/chat") and seen["body"]["options"]["num_ctx"] == 8192
+    assert c.base.endswith("/v1") and c.usage.prompt == 10
