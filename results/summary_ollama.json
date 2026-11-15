@@ -1,20 +1,28 @@
 {
   "backend": "ollama",
-  "n_cases": 80,
+  "n_cases": 95,
   "date": "2026-11-15",
   "variants": {
     "verifier": {
-      "n": 80,
-      "overall_accuracy": 0.912,
+      "n": 95,
+      "overall_accuracy": 0.979,
+      "accuracy_original": 1.0,
       "by_category": {
         "numeric": {
           "n": 15,
-          "accuracy": 0.6,
-          "retrieval_hit@k": 1.0
+          "accuracy": 1.0,
+          "retrieval_hit@k": 1.0,
+          "evidence_recall@k": 1.0
+        },
+        "numeric_new": {
+          "n": 15,
+          "accuracy": 0.867,
+          "retrieval_hit@k": 1.0,
+          "evidence_recall@k": 1.0
         },
         "qualitative": {
           "n": 30,
-          "accuracy": 0.967,
+          "accuracy": 1.0,
           "retrieval_hit@k": 1.0
         },
         "unanswerable": {
@@ -28,24 +36,33 @@
           "retrieval_hit@k": null
         }
       },
-      "verifier_supported_share": 0.915,
-      "false_abstain_rate": 0.133,
-      "latency_p50_ms": 10206,
-      "latency_p95_ms": 19021,
+      "verifier_supported_share": 0.984,
+      "false_abstain_rate": 0.017,
+      "citations_repaired": 1,
+      "latency_p50_ms": 16516,
+      "latency_p95_ms": 25103,
       "model": "qwen2.5:7b",
-      "minutes": 12.3,
-      "llm_calls": 124,
-      "prompt_tokens": 259564,
-      "completion_tokens": 8832
+      "minutes": 22.6,
+      "llm_calls": 145,
+      "prompt_tokens": 471442,
+      "completion_tokens": 10515
     },
     "no_verifier": {
-      "n": 80,
-      "overall_accuracy": 0.95,
+      "n": 95,
+      "overall_accuracy": 0.989,
+      "accuracy_original": 1.0,
       "by_category": {
         "numeric": {
           "n": 15,
-          "accuracy": 0.733,
-          "retrieval_hit@k": 1.0
+          "accuracy": 1.0,
+          "retrieval_hit@k": 1.0,
+          "evidence_recall@k": 1.0
+        },
+        "numeric_new": {
+          "n": 15,
+          "accuracy": 0.933,
+          "retrieval_hit@k": 1.0,
+          "evidence_recall@k": 1.0
         },
         "qualitative": {
           "n": 30,
@@ -64,14 +81,15 @@
         }
       },
       "verifier_supported_share": null,
-      "false_abstain_rate": 0.044,
-      "latency_p50_ms": 7578,
-      "latency_p95_ms": 11089,
+      "false_abstain_rate": 0.0,
+      "citations_repaired": 0,
+      "latency_p50_ms": 9624,
+      "latency_p95_ms": 12968,
       "model": "qwen2.5:7b",
-      "minutes": 9.0,
-      "llm_calls": 65,
-      "prompt_tokens": 184736,
-      "completion_tokens": 5575
+      "minutes": 13.4,
+      "llm_calls": 80,
+      "prompt_tokens": 255415,
+      "completion_tokens": 6896
     }
   }
 }

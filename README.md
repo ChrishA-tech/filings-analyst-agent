@@ -59,31 +59,31 @@ questions (operating income, cash, stockholders' equity) written before the v2 r
 ## Results
 
 <!-- RESULTS:START -->
-**Backend: ollama** (80 cases, run 2026-11-15)
+**Backend: ollama** (95 cases, run 2026-11-15)
 
 | Metric | verifier | no_verifier |
 |---|---|---|
 | Model | qwen2.5:7b | qwen2.5:7b |
-| Overall accuracy | 91.2% | 95.0% |
-| Numeric accuracy | 60.0% | 73.3% |
-| Numeric (held-out metrics) accuracy | n/a | n/a |
-| Qualitative accuracy | 96.7% | 100.0% |
+| Overall accuracy | 97.9% | 98.9% |
+| Numeric accuracy | 100.0% | 100.0% |
+| Numeric (held-out metrics) accuracy | 86.7% | 93.3% |
+| Qualitative accuracy | 100.0% | 100.0% |
 | Unanswerable accuracy | 100.0% | 100.0% |
 | Adversarial accuracy | 100.0% | 100.0% |
-| Figure present in retrieved passages (numeric) | n/a | n/a |
+| Figure present in retrieved passages (numeric) | 100.0% | 100.0% |
 | Right section retrieved (qualitative) | 100.0% | 100.0% |
-| Citations corrected by the verifier | n/a | n/a |
-| Claims the verifier judged supported | 91.5% | n/a |
-| False abstain rate (answerable questions) | 13.3% | 4.4% |
-| Latency p50 / p95 (s) | 10.2 / 19.0 | 7.6 / 11.1 |
-| LLM calls | 124 | 65 |
+| Citations corrected by the verifier | 1 | 0 |
+| Claims the verifier judged supported | 98.4% | n/a |
+| False abstain rate (answerable questions) | 1.7% | 0.0% |
+| Latency p50 / p95 (s) | 16.5 / 25.1 | 9.6 / 13.0 |
+| LLM calls | 145 | 80 |
 
 **v1 → v2 (Ollama, same 80 original questions).** v2 fixes: word-level BM25 tokenisation, verifier checks all retrieved passages, repairs wrong citations and requires the same line item; held-out numeric metrics added (v2 only).
 
 | Variant | Accuracy v1 → v2 | Numeric v1 → v2 | False abstain v1 → v2 | Latency p50 v1 → v2 (s) |
 |---|---|---|---|---|
-| verifier | 91.2% → **91.2%** | 60.0% → 60.0% | 13.3% → 13.3% | 10.2 → 10.2 |
-| no_verifier | 95.0% → **95.0%** | 73.3% → 73.3% | 4.4% → 4.4% | 7.6 → 7.6 |
+| verifier | 91.2% → **100.0%** | 60.0% → 100.0% | 13.3% → 1.7% | 10.2 → 16.5 |
+| no_verifier | 95.0% → **100.0%** | 73.3% → 100.0% | 4.4% → 0.0% | 7.6 → 9.6 |
 
 _Verifier-vs-human calibration not run yet (see `analyst/judge_labels.py`)._
 
