@@ -5,7 +5,7 @@
 # MAGIC and traces every LangGraph step with MLflow Tracing.
 # MAGIC
 # MAGIC 1. Repos / Git folder: clone `https://github.com/ChrishA-tech/filings-analyst-agent`
-# MAGIC 2. Upload `data/chunks.jsonl` and `data/sec/` (made on your Mac by `run_and_push.py`) into the repo's `data/` folder, or a Volume.
+# MAGIC 2. Nothing to upload: the notebook uses the committed `data/chunks.jsonl` and `results/cases.jsonl`.
 # MAGIC 3. Pick endpoints that exist in **Serving** in your workspace (Free Edition availability varies) and run all.
 
 # COMMAND ----------
@@ -27,12 +27,12 @@ os.environ["DATABRICKS_CHAT"], os.environ["DATABRICKS_EMBED"] = dbutils.widgets.
 import importlib, mlflow
 from analyst import config as C
 importlib.reload(C)
-from analyst.evals import build_cases, run, summarise
+from analyst.evals import run, summarise
 from analyst.pipeline import make
 
 mlflow.langchain.autolog()          # traces every LangGraph node and LLM call
 mlflow.set_experiment(f"/Users/{spark.sql('select current_user()').first()[0]}/filings-analyst")
-cases = build_cases()
+cases = [json.loads(l) for l in open("../results/cases.jsonl") if l.strip()]   # same questions as the local run
 lim = int(dbutils.widgets.get("limit"))
 if lim:
     per = max(1, lim // 4)
@@ -55,6 +55,7 @@ for verify in (True, False):
 print(json.dumps(report, indent=2))
 
 # COMMAND ----------
-# Download this file (Workspace browser > results) and pass it to publish.py on your Mac.
-os.makedirs("../results", exist_ok=True)
-open("../results/summary_databricks.json", "w").write(json.dumps(report, indent=2))
+# Copy the printed JSON into results/summary_databricks.json on your Mac (Git folders are read-only for results).
+report["date"] = __import__("time").strftime("%Y-%m-%d")
+print("COPY EVERYTHING BELOW into results/summary_databricks.json on your Mac")
+print(json.dumps(report))
