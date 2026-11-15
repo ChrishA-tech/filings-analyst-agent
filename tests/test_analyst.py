@@ -128,3 +128,14 @@ def test_run_evals_and_report(corpus, tmp_path, monkeypatch):
     report.fill(readme)
     txt = readme.read_text()
     assert "old" not in txt and "Overall accuracy" in txt and txt.endswith("y")
+
+
+def test_model_error_fails_one_question(corpus, tmp_path):
+    sec, _ = corpus
+    idx, _ = _app(corpus)
+
+    class Boom:
+        def invoke(self, *a, **k):
+            raise TimeoutError("timed out")
+    rows = run(Boom(), idx, build_cases(sec)[:3])
+    assert len(rows) == 3 and all(r["status"] == "failed" and not r["correct"] for r in rows)

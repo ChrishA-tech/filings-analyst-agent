@@ -100,7 +100,10 @@ def run(app, index, cases: List[Dict], log: Path = None) -> List[Dict]:
     rows = []
     for c in cases:
         t = time.perf_counter()
-        out = ask(app, c["question"], c["ticker"] if c["category"] != "adversarial" else None)
+        try:
+            out = ask(app, c["question"], c["ticker"] if c["category"] != "adversarial" else None)
+        except Exception as e:          # a hung or crashed model call fails this question, not the whole run
+            out = {"answer": f"ERROR {type(e).__name__}", "status": "failed", "citations": [], "verdicts": [], "attempts": 0}
         ms = (time.perf_counter() - t) * 1000
         docs = index.search(c["question"], ticker=c["ticker"]) if c["category"] in ("numeric", "qualitative") else []
         r = score(c, out, [(d.metadata["ticker"], d.metadata["item"]) for d in docs])
