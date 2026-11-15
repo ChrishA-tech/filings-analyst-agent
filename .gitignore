@@ -1,0 +1,7 @@
+.venv*/
+__pycache__/
+data/sec/
+data/chroma/
+.env*
+*.pyc
+results/judge_sample.csv
