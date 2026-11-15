@@ -147,7 +147,11 @@ class FakeChat:
 
     def _verify(self, user: str) -> str:
         claim = user.split("CLAIM:")[-1].strip().lower()
-        evidence = user.split("CLAIM:")[0].lower()
         words = [w for w in _WORD.findall(claim) if len(w) > 3]
-        ok = bool(words) and sum(w in evidence for w in words) / len(words) >= 0.8
-        return json.dumps({"supported": ok, "reason": "overlap"})
+        best, src = 0.0, None
+        for m in re.finditer(r"\[(\d+)\][^\n]*\n(.*?)(?=\n\[\d+\] |\n\nCLAIM:|\Z)", user.split("CLAIM:")[0] + "\n\nCLAIM:", re.S):
+            share = sum(w in m.group(2).lower() for w in words) / len(words) if words else 0.0
+            if share > best:
+                best, src = share, int(m.group(1))
+        ok = best >= 0.8
+        return json.dumps({"supported": ok, "sources": [src] if ok else [], "reason": "overlap"})

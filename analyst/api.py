@@ -32,4 +32,5 @@ def health():
 def ask_route(q: Q):
     out = ask(_app(), q.question, q.ticker)
     out.pop("verdicts", None)
+    out.pop("docs", None)
     return out

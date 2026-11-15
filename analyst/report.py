@@ -22,16 +22,36 @@ def render() -> str:
         vs = list(r["variants"].values())
         rows = [("Model", [v["model"] for v in vs], False),
                 ("Overall accuracy", [v["overall_accuracy"] for v in vs], True)]
-        for cat in ("numeric", "qualitative", "unanswerable", "adversarial"):
-            rows.append((f"{cat.capitalize()} accuracy", [v["by_category"].get(cat, {}).get("accuracy") for v in vs], True))
-        rows += [("Retrieval hit@6 (numeric+qualitative)",
-                  [_avg([v["by_category"].get(c, {}) for c in ("numeric", "qualitative")]) for v in vs], True),
+        for cat in ("numeric", "numeric_new", "qualitative", "unanswerable", "adversarial"):
+            label = "Numeric (held-out metrics) accuracy" if cat == "numeric_new" else f"{cat.capitalize()} accuracy"
+            rows.append((label, [v["by_category"].get(cat, {}).get("accuracy") for v in vs], True))
+        rows += [("Figure present in retrieved passages (numeric)",
+                  [v["by_category"].get("numeric", {}).get("evidence_recall@k") for v in vs], True),
+                 ("Right section retrieved (qualitative)",
+                  [v["by_category"].get("qualitative", {}).get("retrieval_hit@k") for v in vs], True),
+                 ("Citations corrected by the verifier", [v.get("citations_repaired") for v in vs], False),
                  ("Claims the verifier judged supported", [v["verifier_supported_share"] for v in vs], True),
                  ("False abstain rate (answerable questions)", [v["false_abstain_rate"] for v in vs], True),
                  ("Latency p50 / p95 (s)", [f"{v['latency_p50_ms'] / 1000:.1f} / {v['latency_p95_ms'] / 1000:.1f}" for v in vs], False),
                  ("LLM calls", [v["llm_calls"] for v in vs], False)]
         for name, vals, pct in rows:
-            out.append(f"| {name} | " + " | ".join(_f(x) if pct else str(x) for x in vals) + " |")
+            out.append(f"| {name} | " + " | ".join(_f(x) if pct else ("n/a" if x is None else str(x)) for x in vals) + " |")
+        out.append("")
+    v1p, cur = C.RESULTS / "v1" / "summary_ollama.json", C.RESULTS / "summary_ollama.json"
+    if v1p.exists() and cur.exists():
+        a, b = json.loads(v1p.read_text())["variants"], json.loads(cur.read_text())["variants"]
+        out += ["**v1 → v2 (Ollama, same 80 original questions).** v2 fixes: word-level BM25 tokenisation, verifier "
+                "checks all retrieved passages, repairs wrong citations and requires the same line item; held-out "
+                "numeric metrics added (v2 only).", "",
+                "| Variant | Accuracy v1 → v2 | Numeric v1 → v2 | False abstain v1 → v2 | Latency p50 v1 → v2 (s) |",
+                "|---|---|---|---|---|"]
+        for k in b:
+            if k in a:
+                o, n = a[k], b[k]
+                out.append(f"| {k} | {_f(o['overall_accuracy'])} → **{_f(n.get('accuracy_original', n['overall_accuracy']))}** | "
+                           f"{_f(o['by_category']['numeric']['accuracy'])} → {_f(n['by_category']['numeric']['accuracy'])} | "
+                           f"{_f(o['false_abstain_rate'])} → {_f(n['false_abstain_rate'])} | "
+                           f"{o['latency_p50_ms'] / 1000:.1f} → {n['latency_p50_ms'] / 1000:.1f} |")
         out.append("")
     cal = C.RESULTS / "judge_calibration.json"
     if cal.exists():

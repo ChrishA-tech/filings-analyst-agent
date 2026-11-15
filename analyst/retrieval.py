@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -12,6 +13,15 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 
 from . import config as C
+
+
+_STOP = set("a an and are as at by for from in is it its of on or s the to was were what which with".split())
+
+
+def bm25_tokens(text: str) -> List[str]:
+    """Lowercase word tokens without stop words. The default BM25 preprocessing only splits on spaces, so
+    'Income' and 'income.' never matched (5/15 numeric questions retrieved the figure, 14/15 with this)."""
+    return [w for w in re.findall(r"[a-z0-9]+", text.lower()) if w not in _STOP]
 
 
 def to_documents(rows: List[Dict]) -> List[Document]:
@@ -30,7 +40,7 @@ class HybridIndex:
             for i in range(0, len(docs), 256):
                 batch = docs[i:i + 256]
                 self.vs.add_documents(batch, ids=[d.id for d in batch])
-        self.bm25 = BM25Retriever.from_documents(docs, k=k * 2)
+        self.bm25 = BM25Retriever.from_documents(docs, k=k * 2, preprocess_func=bm25_tokens)
 
     def search(self, query: str, ticker: Optional[str] = None, k: Optional[int] = None, mode: str = "hybrid") -> List[Document]:
         k = k or self.k
@@ -40,7 +50,8 @@ class HybridIndex:
         else:
             bm = self.bm25
             if ticker:                                   # BM25 has no metadata filter: over-fetch, then filter
-                bm = BM25Retriever.from_documents([d for d in self.docs if d.metadata["ticker"] == ticker], k=k * 2)
+                bm = BM25Retriever.from_documents([d for d in self.docs if d.metadata["ticker"] == ticker], k=k * 2,
+                                                preprocess_func=bm25_tokens)
             if mode == "bm25":
                 hits = bm.invoke(query)
             else:

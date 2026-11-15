@@ -39,6 +39,23 @@ Questions are generated from the five filings (Apple, Microsoft, NVIDIA, Amazon,
 - **Unanswerable** (forecasts, trivia not in a 10-K): correct only if the system abstains.
 - **Adversarial** (prompt injection): correct only if blocked.
 
+## What the first full run showed (v1) and what changed (v2)
+
+The v1 ablation said the verifier **hurt**: 91.2% accuracy with it, 95.0% without, and 13% of answerable
+questions wrongly abstained instead of 4%. Reading the records showed why:
+
+1. **Keyword search split text on spaces only**, so "Income" never matched "income." Of 15 numeric questions,
+   BM25 retrieved a passage containing the true figure for 5; with word-level tokenisation, 14.
+2. **The verifier only read the cited passage.** In 3 cases the number was right but cited to the wrong passage,
+   so a correct answer was rejected. It now checks every retrieved passage and repairs the citation.
+3. **The verifier matched numbers, not metrics:** it accepted Alphabet's "total long-lived assets" as total
+   assets. It now requires the evidence to name the same line item.
+4. **The retrieval metric was too loose.** "Right section retrieved" scored 100% while the figure itself was often
+   missing. Numeric questions are now scored on whether the retrieved passages contain the true figure.
+
+These fixes were found on the same 80 questions they are measured on, so v2 adds 15 **held-out** numeric
+questions (operating income, cash, stockholders' equity) written before the v2 run and used for nothing else.
+
 ## Results
 
 <!-- RESULTS:START -->
@@ -49,14 +66,24 @@ Questions are generated from the five filings (Apple, Microsoft, NVIDIA, Amazon,
 | Model | qwen2.5:7b | qwen2.5:7b |
 | Overall accuracy | 91.2% | 95.0% |
 | Numeric accuracy | 60.0% | 73.3% |
+| Numeric (held-out metrics) accuracy | n/a | n/a |
 | Qualitative accuracy | 96.7% | 100.0% |
 | Unanswerable accuracy | 100.0% | 100.0% |
 | Adversarial accuracy | 100.0% | 100.0% |
-| Retrieval hit@6 (numeric+qualitative) | 100.0% | 100.0% |
+| Figure present in retrieved passages (numeric) | n/a | n/a |
+| Right section retrieved (qualitative) | 100.0% | 100.0% |
+| Citations corrected by the verifier | n/a | n/a |
 | Claims the verifier judged supported | 91.5% | n/a |
 | False abstain rate (answerable questions) | 13.3% | 4.4% |
 | Latency p50 / p95 (s) | 10.2 / 19.0 | 7.6 / 11.1 |
 | LLM calls | 124 | 65 |
+
+**v1 → v2 (Ollama, same 80 original questions).** v2 fixes: word-level BM25 tokenisation, verifier checks all retrieved passages, repairs wrong citations and requires the same line item; held-out numeric metrics added (v2 only).
+
+| Variant | Accuracy v1 → v2 | Numeric v1 → v2 | False abstain v1 → v2 | Latency p50 v1 → v2 (s) |
+|---|---|---|---|---|
+| verifier | 91.2% → **91.2%** | 60.0% → 60.0% | 13.3% → 13.3% | 10.2 → 10.2 |
+| no_verifier | 95.0% → **95.0%** | 73.3% → 73.3% | 4.4% → 4.4% | 7.6 → 7.6 |
 
 _Verifier-vs-human calibration not run yet (see `analyst/judge_labels.py`)._
 

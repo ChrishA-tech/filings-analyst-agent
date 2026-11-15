@@ -36,7 +36,7 @@ cases = build_cases()
 lim = int(dbutils.widgets.get("limit"))
 if lim:
     per = max(1, lim // 4)
-    cases = [c for cat in ("numeric", "qualitative", "unanswerable", "adversarial") for c in [x for x in cases if x["category"] == cat][:per]]
+    cases = [c for cat in ("numeric", "numeric_new", "qualitative", "unanswerable", "adversarial") for c in [x for x in cases if x["category"] == cat][:per]]
 
 report = {"backend": "databricks", "n_cases": len(cases), "variants": {}}
 for verify in (True, False):

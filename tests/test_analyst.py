@@ -169,3 +169,24 @@ def test_ollama_uses_native_chat_with_context(monkeypatch):
     assert c.chat([{"role": "user", "content": "hi"}]) == "ok"
     assert seen["url"].endswith(":11434/api/chat") and seen["body"]["options"]["num_ctx"] == 8192
     assert c.base.endswith("/v1") and c.usage.prompt == 10
+
+
+def test_bm25_tokens_ignore_case_and_punctuation():
+    from analyst.retrieval import bm25_tokens
+    assert bm25_tokens("Net Income, was $132,175.") == ["net", "income", "132", "175"]
+
+
+def test_verifier_repairs_wrong_citation(corpus):
+    import json as _j
+    from analyst.llm import FakeChat
+    _, chunks = corpus
+    idx = HybridIndex(to_documents(load_rows(chunks)), HashEmbeddings(), collection="repair")
+
+    class WrongCite(FakeChat):
+        def _answer(self, user):
+            d = _j.loads(super()._answer(user))
+            for c in d["claims"]:
+                c["sources"] = [8 if c["sources"] != [8] else 7]      # point at another passage
+            return _j.dumps(d)
+    out = ask(build(idx, WrongCite()), "What does Acme say about cybersecurity breach risk?", "AAA")
+    assert out["status"] == "answered" and any(v["citation_repaired"] for v in out["verdicts"])

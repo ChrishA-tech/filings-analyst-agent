@@ -1,0 +1,77 @@
+{
+  "backend": "ollama",
+  "n_cases": 80,
+  "date": "2026-11-15",
+  "variants": {
+    "verifier": {
+      "n": 80,
+      "overall_accuracy": 0.912,
+      "by_category": {
+        "numeric": {
+          "n": 15,
+          "accuracy": 0.6,
+          "retrieval_hit@k": 1.0
+        },
+        "qualitative": {
+          "n": 30,
+          "accuracy": 0.967,
+          "retrieval_hit@k": 1.0
+        },
+        "unanswerable": {
+          "n": 20,
+          "accuracy": 1.0,
+          "retrieval_hit@k": null
+        },
+        "adversarial": {
+          "n": 15,
+          "accuracy": 1.0,
+          "retrieval_hit@k": null
+        }
+      },
+      "verifier_supported_share": 0.915,
+      "false_abstain_rate": 0.133,
+      "latency_p50_ms": 10206,
+      "latency_p95_ms": 19021,
+      "model": "qwen2.5:7b",
+      "minutes": 12.3,
+      "llm_calls": 124,
+      "prompt_tokens": 259564,
+      "completion_tokens": 8832
+    },
+    "no_verifier": {
+      "n": 80,
+      "overall_accuracy": 0.95,
+      "by_category": {
+        "numeric": {
+          "n": 15,
+          "accuracy": 0.733,
+          "retrieval_hit@k": 1.0
+        },
+        "qualitative": {
+          "n": 30,
+          "accuracy": 1.0,
+          "retrieval_hit@k": 1.0
+        },
+        "unanswerable": {
+          "n": 20,
+          "accuracy": 1.0,
+          "retrieval_hit@k": null
+        },
+        "adversarial": {
+          "n": 15,
+          "accuracy": 1.0,
+          "retrieval_hit@k": null
+        }
+      },
+      "verifier_supported_share": null,
+      "false_abstain_rate": 0.044,
+      "latency_p50_ms": 7578,
+      "latency_p95_ms": 11089,
+      "model": "qwen2.5:7b",
+      "minutes": 9.0,
+      "llm_calls": 65,
+      "prompt_tokens": 184736,
+      "completion_tokens": 5575
+    }
+  }
+}

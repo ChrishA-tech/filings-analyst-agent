@@ -19,9 +19,11 @@ Return JSON: {"answer": "<2-4 sentences>", "claims": [{"text": "<one factual sen
 Every claim must cite the source(s) that state it. Copy figures exactly as written in the source, with units.
 If the sources do not contain the answer, return {"answer": "INSUFFICIENT_EVIDENCE", "claims": []}. Never guess."""
 
-VERIFIER = """You are a strict VERIFIER. Decide whether the CLAIM is fully supported by the EVIDENCE alone.
-Numbers must match the evidence. Anything not stated in the evidence is unsupported.
-Return JSON: {"supported": true|false, "reason": "<short>"}"""
+VERIFIER = """You are a strict VERIFIER. Decide whether the CLAIM is fully supported by the numbered SOURCES alone.
+Numbers must match a source exactly. The source must name the SAME metric as the claim: a different or related
+line item (a subtotal, a segment, long-lived assets instead of total assets, tax expense instead of net income)
+is not support. The claim's citation may point to the wrong source: check all sources.
+Return JSON: {"supported": true|false, "sources": [<numbers of the sources that state it>], "reason": "<short>"}"""
 
 
 class State(TypedDict, total=False):
@@ -91,16 +93,18 @@ def build(index, llm, verify: bool = True, judge=None):
     @timed("verify")
     def verifier(s):
         out = []
+        all_sources = _sources(s["docs"])
         for c in s["draft"]["claims"]:
-            ids = [int(i) for i in c.get("sources", []) if str(i).isdigit() and 1 <= int(i) <= len(s["docs"])]
-            if not ids:
-                out.append({**c, "supported": False, "reason": "no valid citation"})
-                continue
-            ev = "\n\n".join(s["docs"][i - 1].page_content for i in ids)
+            cited = [int(i) for i in c.get("sources", []) if str(i).isdigit() and 1 <= int(i) <= len(s["docs"])]
             v = parse_json(judge.chat([{"role": "system", "content": VERIFIER},
-                                       {"role": "user", "content": f"EVIDENCE:\n{ev}\n\nCLAIM: {c['text']}"}],
-                                      max_tokens=120))
-            out.append({**c, "sources": ids, "supported": bool(v.get("supported")), "reason": v.get("reason", ""), "evidence": ev[:3000]})
+                                       {"role": "user", "content": f"SOURCES:\n{all_sources}\n\nCLAIM: {c['text']}"}],
+                                      max_tokens=150))
+            found = [int(i) for i in v.get("sources", []) if str(i).isdigit() and 1 <= int(i) <= len(s["docs"])]
+            ok = bool(v.get("supported")) and bool(found or cited)
+            ids = found or cited
+            ev = "\n\n".join(s["docs"][i - 1].page_content for i in ids) if ids else ""
+            out.append({**c, "sources": ids, "supported": ok, "reason": v.get("reason", ""), "evidence": ev[:3000],
+                        "citation_repaired": ok and bool(found) and not set(found) & set(cited)})
         bad = [v["text"] for v in out if not v["supported"]]
         return {"verdicts": out, "feedback": "; ".join(bad)}
 
@@ -145,4 +149,4 @@ def build(index, llm, verify: bool = True, judge=None):
 
 def ask(app, question: str, ticker: Optional[str] = None) -> Dict:
     s = app.invoke({"question": question, "ticker": ticker, "trace": []})
-    return {k: s.get(k) for k in ("answer", "status", "citations", "verdicts", "trace", "attempts")}
+    return {k: s.get(k) for k in ("answer", "status", "citations", "verdicts", "trace", "attempts", "docs")}

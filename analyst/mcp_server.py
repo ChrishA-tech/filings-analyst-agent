@@ -15,6 +15,7 @@ def ask_filings(question: str, ticker: str = "") -> dict:
     """Answer a question about a company's latest SEC 10-K (AAPL, MSFT, NVDA, AMZN, GOOGL) with verified citations."""
     out = ask(APP, question, ticker or None)
     out.pop("verdicts", None)
+    out.pop("docs", None)
     return out
 
 

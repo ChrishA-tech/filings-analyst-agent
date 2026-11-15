@@ -27,7 +27,7 @@ def main():
     cases = build_cases()
     if a.limit:                                   # keep every category in a trial run
         per = max(1, a.limit // 4)
-        cases = [c for cat in ("numeric", "qualitative", "unanswerable", "adversarial")
+        cases = [c for cat in ("numeric", "numeric_new", "qualitative", "unanswerable", "adversarial")
                  for c in [x for x in cases if x["category"] == cat][:per]]
     (C.RESULTS / "cases.jsonl").write_text("".join(json.dumps(c) + "\n" for c in cases))
     report = {"backend": a.backend, "n_cases": len(cases), "date": time.strftime("%Y-%m-%d"), "variants": {}}
