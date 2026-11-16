@@ -23,8 +23,7 @@ VENV = ROOT / ".venv312"
 PY = VENV / "bin" / "python"
 OWNER, REPO = "ChrishA-tech", "filings-analyst-agent"
 AUTHOR = "Chrish Pep Felix A <chrishpepfelixa@gmail.com>"
-TRAILER = ("\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
-           "Claude-Session: https://claude.ai/code/session_01DVp71MJqKBK4sk34js4Jfb")
+TRAILER = ""
 MODELS = [os.environ.get("OLLAMA_CHAT", "qwen2.5:7b"), os.environ.get("OLLAMA_EMBED", "nomic-embed-text")]
 
 
